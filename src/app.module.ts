@@ -4,10 +4,19 @@ import { AppService } from './app.service';
 import ormConfig from './ormconfig';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './resources/user/user.module';
+import { AuthModule } from './resources/auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './resources/auth/guards/jwt-auth.guard';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(ormConfig.options), UserModule],
+  imports: [TypeOrmModule.forRoot(ormConfig.options), UserModule, AuthModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}
