@@ -66,7 +66,9 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  remove(id: string) {
-    return this.userRepository.delete(id);
+  async remove(id: string) {
+    const result = await this.userRepository.delete(id);
+    if (result.affected === 0)
+      throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
   }
 }
