@@ -7,10 +7,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { QueryEntity } from './entities/query.entity';
 
 @Controller('task')
 export class TaskController {
@@ -22,8 +24,11 @@ export class TaskController {
   }
 
   @Get()
-  findAll(@Headers('authorization') token: string) {
-    return this.taskService.findAll(token);
+  findAll(
+    @Headers('authorization') token: string,
+    @Query() query: QueryEntity,
+  ) {
+    return this.taskService.findAll(token, query);
   }
 
   @Get(':id')

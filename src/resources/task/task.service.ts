@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { QueryEntity } from './entities/query.entity';
 
 const { env } = process;
 
@@ -19,25 +20,50 @@ export class TaskService {
     private readonly jwtService: JwtService,
   ) {}
 
-  create(createTaskDto: CreateTaskDto) {
-    return 'This action adds a new task';
-  }
-
-  findAll(token: string) {
-    const { userId } = this.jwtService.verify(token, {
-      secret: env.JWT_SECRET,
+  async create(createTaskDto: CreateTaskDto) {
+    const { dateString, ...rest } = createTaskDto;
+    const dateObj = new Date(dateString);
+    const year = dateObj.getFullYear();
+    const month = dateObj.getUTCMonth();
+    const day = dateObj.getDate();
+    return await this.taskRepository.save({
+      ...rest,
+      day,
+      month,
+      year,
     });
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} task`;
+  async findAll(token: string, query: QueryEntity) {
+    const { userId } = this.jwtService.verify(token.split(' ')[1], {
+      secret: env.JWT_SECRET,
+    });
+    for (const key in query) {
+      query[key] = parseInt(query[key]);
+    }
+    return await this.taskRepository.find({
+      where: {
+        userId,
+        ...query,
+      },
+    });
   }
 
-  update(id: string, updateTaskDto: UpdateTaskDto) {
-    return `This action updates a #${id} task`;
+  async findOne(id: string) {
+    const task = await this.taskRepository.findOne({ where: { id } });
+    if (!task)
+      throw new HttpException('Task is not found', HttpStatus.NOT_FOUND);
+    return task;
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} task`;
+  async update(id: string, updateTaskDto: UpdateTaskDto) {
+    const task = await this.findOne(id);
+    return await this.taskRepository.save({ ...task, ...updateTaskDto });
+  }
+
+  async remove(id: string) {
+    const result = await this.taskRepository.delete(id);
+    if (result.affected === 0)
+      throw new HttpException('Task is not found', HttpStatus.NOT_FOUND);
   }
 }

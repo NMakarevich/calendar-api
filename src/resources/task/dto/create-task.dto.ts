@@ -1,8 +1,8 @@
-import { IsDate, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsDateString, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateTaskDto {
-  @IsDate()
-  date: Date;
+  @IsDateString()
+  dateString: string;
 
   @IsString()
   userId: string;
