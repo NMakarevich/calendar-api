@@ -42,6 +42,7 @@ export class UserController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Patch(':id')
+  @HttpCode(200)
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateUserDto: UpdateUserDto,
