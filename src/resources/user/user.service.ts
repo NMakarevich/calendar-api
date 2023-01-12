@@ -8,6 +8,8 @@ import * as bcrypt from 'bcrypt';
 import 'dotenv/config';
 import * as process from 'process';
 import { Repository } from 'typeorm';
+import { NotFoundException } from '../../utils/exceptions';
+
 const { env } = process;
 @Injectable()
 export class UserService {
@@ -37,8 +39,7 @@ export class UserService {
 
   async findOne(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user)
-      throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
+    if (!user) NotFoundException('User', id);
     return user;
   }
 
@@ -48,8 +49,7 @@ export class UserService {
 
   async update(userId: string, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(userId);
-    if (!user)
-      throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
+    if (!user) NotFoundException('User', userId);
 
     const isMatchPassword = await bcrypt.compare(
       updateUserDto.password,
@@ -68,7 +68,6 @@ export class UserService {
 
   async remove(id: string) {
     const result = await this.userRepository.delete(id);
-    if (result.affected === 0)
-      throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
+    if (result.affected === 0) NotFoundException('User', id);
   }
 }

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
@@ -9,6 +9,7 @@ import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { QueryEntity } from './entities/query.entity';
+import { NotFoundException } from '../../utils/exceptions';
 
 const { env } = process;
 
@@ -26,6 +27,7 @@ export class TaskService {
     const year = dateObj.getFullYear();
     const month = dateObj.getUTCMonth();
     const day = dateObj.getDate();
+
     return await this.taskRepository.save({
       ...rest,
       day,
@@ -38,9 +40,7 @@ export class TaskService {
     const { userId } = this.jwtService.verify(token.split(' ')[1], {
       secret: env.JWT_SECRET,
     });
-    for (const key in query) {
-      query[key] = parseInt(query[key]);
-    }
+
     return await this.taskRepository.find({
       where: {
         userId,
@@ -51,19 +51,18 @@ export class TaskService {
 
   async findOne(id: string) {
     const task = await this.taskRepository.findOne({ where: { id } });
-    if (!task)
-      throw new HttpException('Task is not found', HttpStatus.NOT_FOUND);
+    if (!task) NotFoundException('Task', id);
     return task;
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {
     const task = await this.findOne(id);
+    if (!task) NotFoundException('Task', id);
     return await this.taskRepository.save({ ...task, ...updateTaskDto });
   }
 
   async remove(id: string) {
     const result = await this.taskRepository.delete(id);
-    if (result.affected === 0)
-      throw new HttpException('Task is not found', HttpStatus.NOT_FOUND);
+    if (result.affected === 0) NotFoundException('Task', id);
   }
 }
