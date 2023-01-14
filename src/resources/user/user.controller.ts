@@ -12,10 +12,9 @@ import {
   ParseUUIDPipe,
   UploadedFile,
   Header,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
   StreamableFile,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -60,20 +59,32 @@ export class UserController {
 
   @UseInterceptors(
     ClassSerializerInterceptor,
-    FileInterceptor('file', { dest: './uploads' }),
+    FileInterceptor('file', {
+      dest: './uploads',
+      fileFilter(
+        req: any,
+        file: Express.Multer.File,
+        callback: (error: Error | null, acceptFile: boolean) => void,
+      ) {
+        if (file.mimetype.includes('image/')) callback(null, true);
+        else {
+          return callback(
+            new HttpException(
+              'File must be an image',
+              HttpStatus.UNPROCESSABLE_ENTITY,
+            ),
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 100000 },
+    }),
   )
   @Patch(':id/photo')
   @HttpCode(200)
   uploadPhoto(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 100000 }),
-          new FileTypeValidator({ fileType: 'image/*' }),
-        ],
-      }),
-    )
+    @UploadedFile()
     file: Express.Multer.File,
   ) {
     return this.userService.uploadPhoto(id, file);
