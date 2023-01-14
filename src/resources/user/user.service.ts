@@ -1,14 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { rm, rename } from 'fs/promises';
+import * as path from 'path';
 
 import 'dotenv/config';
 import * as process from 'process';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '../../utils/exceptions';
+import { join } from 'path';
+import { createReadStream } from 'fs';
 
 const { env } = process;
 @Injectable()
@@ -47,12 +51,15 @@ export class UserService {
     return this.userRepository.findOne({ where: { username } });
   }
 
-  async update(userId: string, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(userId);
-    if (!user) NotFoundException('User', userId);
+  async updatePassword(
+    id: string,
+    updateUserPasswordDto: UpdateUserPasswordDto,
+  ) {
+    const user = await this.findOne(id);
+    if (!user) NotFoundException('User', id);
 
     const isMatchPassword = await bcrypt.compare(
-      updateUserDto.password,
+      updateUserPasswordDto.password,
       user.password,
     );
 
@@ -60,9 +67,34 @@ export class UserService {
       throw new HttpException('Password is invalid', HttpStatus.FORBIDDEN);
 
     user.password = await bcrypt.hash(
-      updateUserDto.newPassword,
+      updateUserPasswordDto.newPassword,
       parseInt(env.BCRYPT_SALT),
     );
+    return await this.userRepository.save(user);
+  }
+
+  getPhoto(filename: string) {
+    return createReadStream(join(process.cwd(), 'uploads', filename));
+  }
+
+  async uploadPhoto(id: string, file: Express.Multer.File) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) NotFoundException('User', id);
+
+    if (user.imageName) {
+      await rm(path.join(process.cwd(), 'uploads', user.imageName), {
+        recursive: true,
+      });
+    }
+
+    const { filename } = file;
+
+    user.imageName = `${file.filename}.${file.mimetype.split('/')[1]}`;
+    await rename(
+      path.join(process.cwd(), 'uploads', filename),
+      path.join(process.cwd(), 'uploads', user.imageName),
+    );
+
     return await this.userRepository.save(user);
   }
 

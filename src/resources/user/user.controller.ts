@@ -10,10 +10,18 @@ import {
   ClassSerializerInterceptor,
   HttpCode,
   ParseUUIDPipe,
+  UploadedFile,
+  Header,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  StreamableFile,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Public } from '../auth/guards/jwt-auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -41,13 +49,43 @@ export class UserController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Patch(':id')
+  @Patch(':id/password')
   @HttpCode(200)
-  update(
+  updatePassword(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateUserPasswordDto: UpdateUserPasswordDto,
   ) {
-    return this.userService.update(id, updateUserDto);
+    return this.userService.updatePassword(id, updateUserPasswordDto);
+  }
+
+  @UseInterceptors(
+    ClassSerializerInterceptor,
+    FileInterceptor('file', { dest: './uploads' }),
+  )
+  @Patch(':id/photo')
+  @HttpCode(200)
+  uploadPhoto(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 100000 }),
+          new FileTypeValidator({ fileType: 'image/*' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.userService.uploadPhoto(id, file);
+  }
+
+  @Public()
+  @Get('photo/:filename')
+  @HttpCode(200)
+  @Header('Content-Type', 'image/*')
+  getPhoto(@Param('filename') filename: string) {
+    const file = this.userService.getPhoto(filename);
+    return new StreamableFile(file);
   }
 
   @Delete(':id')
