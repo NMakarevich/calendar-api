@@ -27,11 +27,8 @@ export class TaskController {
 
   @Get()
   @HttpCode(200)
-  findAll(
-    @Headers('authorization') token: string,
-    @Query() query: QueryEntity,
-  ) {
-    return this.taskService.findAll(token, query);
+  findAll(@Req() req, @Query() query: QueryEntity) {
+    return this.taskService.findAll(req, query);
   }
 
   @Get(':id')

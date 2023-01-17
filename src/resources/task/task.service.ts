@@ -36,7 +36,9 @@ export class TaskService {
     });
   }
 
-  async findAll(token: string, query: QueryEntity) {
+  async findAll(req: Request, query: QueryEntity) {
+    const { headers } = req;
+    const token = headers['authorization'];
     const { userId } = this.jwtService.verify(token.split(' ')[1], {
       secret: env.JWT_SECRET,
     });
