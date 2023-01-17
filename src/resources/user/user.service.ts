@@ -12,7 +12,8 @@ import * as process from 'process';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '../../utils/exceptions';
 import { join } from 'path';
-import { createReadStream } from 'fs';
+import { createReadStream, access } from 'fs';
+import * as constants from 'constants';
 
 const { env } = process;
 @Injectable()
@@ -74,7 +75,15 @@ export class UserService {
   }
 
   getPhoto(filename: string) {
-    return createReadStream(join(process.cwd(), 'uploads', filename));
+    const path = join(process.cwd(), 'uploads', filename);
+    access(path, constants.F_OK, (err) => {
+      if (err)
+        throw new HttpException(
+          `File ${filename} is not found`,
+          HttpStatus.NOT_FOUND,
+        );
+    });
+    return createReadStream(path);
   }
 
   async uploadPhoto(id: string, file: Express.Multer.File) {
