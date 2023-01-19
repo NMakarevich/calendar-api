@@ -14,6 +14,7 @@ import { NotFoundException } from '../../utils/exceptions';
 import { join } from 'path';
 import { createReadStream, access } from 'fs';
 import * as constants from 'constants';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 
 const { env } = process;
 @Injectable()
@@ -50,6 +51,13 @@ export class UserService {
 
   findOneByUsername(username: string) {
     return this.userRepository.findOne({ where: { username } });
+  }
+
+  async updateProfile(id: string, updateUserProfileDto: UpdateUserProfileDto) {
+    const user = await this.findOne(id);
+    if (!user) NotFoundException('User', id);
+
+    return await this.userRepository.save({ ...user, ...updateUserProfileDto });
   }
 
   async updatePassword(

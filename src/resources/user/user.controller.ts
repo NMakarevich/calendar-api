@@ -39,6 +39,8 @@ import {
 } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import { ApiImplicitFile } from '@nestjs/swagger/dist/decorators/api-implicit-file.decorator';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { UpdatedUser } from './entities/updated-user.entity';
 
 @ApiTags('User')
 @Controller('user')
@@ -107,6 +109,38 @@ export class UserController {
   @HttpCode(200)
   findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.userService.findOne(id);
+  }
+
+  @ApiBearerAuth()
+  @ApiBody({ type: UpdateUserProfileDto })
+  @ApiOkResponse({
+    description: 'Profile data successfully updated',
+    type: UpdatedUser,
+    schema: {
+      oneOf: [
+        {
+          properties: {
+            results: {
+              type: 'object',
+              items: { $ref: getSchemaPath(UpdatedUser) },
+            },
+          },
+        },
+      ],
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'User with id is not found',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized request' })
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Patch(':id/profile')
+  @HttpCode(200)
+  updateProfile(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() updateUserProfileDto: UpdateUserProfileDto,
+  ) {
+    return this.userService.updateProfile(id, updateUserProfileDto);
   }
 
   @ApiBearerAuth()
