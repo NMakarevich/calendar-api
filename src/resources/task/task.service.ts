@@ -43,12 +43,18 @@ export class TaskService {
       secret: env.JWT_SECRET,
     });
 
-    return await this.taskRepository.find({
+    const tasks = await this.taskRepository.find({
       where: {
         userId,
         ...query,
       },
     });
+
+    return tasks.sort(
+      (a, b) =>
+        new Date(a.year, a.month, a.day).getTime() -
+        new Date(b.year, b.month, b.day).getTime(),
+    );
   }
 
   async findOne(id: string) {
