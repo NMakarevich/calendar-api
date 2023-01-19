@@ -56,7 +56,8 @@ export class UserService {
   async updateProfile(id: string, updateUserProfileDto: UpdateUserProfileDto) {
     const user = await this.findOne(id);
 
-    return await this.userRepository.save({ ...user, ...updateUserProfileDto });
+    const updatedUser = Object.assign(user, updateUserProfileDto);
+    return await this.userRepository.save(updatedUser);
   }
 
   async updatePassword(

@@ -59,7 +59,9 @@ export class TaskService {
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {
     const task = await this.findOne(id);
-    return await this.taskRepository.save({ ...task, ...updateTaskDto });
+
+    const updatedTask = Object.assign(task, updateTaskDto);
+    return await this.taskRepository.save(updatedTask);
   }
 
   async remove(id: string) {
