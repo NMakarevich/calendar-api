@@ -55,7 +55,6 @@ export class UserService {
 
   async updateProfile(id: string, updateUserProfileDto: UpdateUserProfileDto) {
     const user = await this.findOne(id);
-    if (!user) NotFoundException('User', id);
 
     return await this.userRepository.save({ ...user, ...updateUserProfileDto });
   }
@@ -65,7 +64,6 @@ export class UserService {
     updateUserPasswordDto: UpdateUserPasswordDto,
   ) {
     const user = await this.findOne(id);
-    if (!user) NotFoundException('User', id);
 
     const isMatchPassword = await bcrypt.compare(
       updateUserPasswordDto.password,
@@ -96,7 +94,6 @@ export class UserService {
 
   async uploadPhoto(id: string, file: Express.Multer.File) {
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) NotFoundException('User', id);
 
     if (user.imageName) {
       await rm(path.join(process.cwd(), 'uploads', user.imageName), {

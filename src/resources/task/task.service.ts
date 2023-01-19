@@ -59,7 +59,6 @@ export class TaskService {
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {
     const task = await this.findOne(id);
-    if (!task) NotFoundException('Task', id);
     return await this.taskRepository.save({ ...task, ...updateTaskDto });
   }
 
