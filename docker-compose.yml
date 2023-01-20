@@ -15,6 +15,7 @@ services:
       - postgres
     environment:
       - PORT=${PORT}
+    restart: on-failure
   postgres:
     container_name: database
     build:
