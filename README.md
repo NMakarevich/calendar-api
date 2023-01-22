@@ -1,73 +1,38 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Calendar API
+This app is analogue of diary. You can create tasks for selected date.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## How to run
+1. Install [Docker](https://www.docker.com/)
+2. Clone this repository: ```git clone https://github.com/NMakarevich/calendar-api.git```
+3. Move to project folder: ```cd calendar-api```
+4. Create in root folder `.env` file and fill it using `.env.example`
+5. In terminal enter command: ```docker compose up```
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+In docker will create containers with REST app (port 3000) and database (port 5432).
+Now you can send request to the app by url `http://localhost:3000`
 
-## Description
+## API endpoints
+You can get list of all available endpoints with request examples by [Swagger](http://localhost:3000/api)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Auth `/auth`
+* `POST /signup` - create new user (it's required to first for working with app)
+* `POST /login` - login with created user
 
-## Installation
+### User `/user`
+* `POST /` - create new user
+* `GET /:id` - get user by `id`
+* `PATCH /:id/password` - update user password
+* `PATCH /:id/photo` - upload user photo
+* `PATCH /:id/profile` - update user data
+* `DELETE /:id` - delete user with entered `id`
 
-```bash
-$ npm install
-```
+You can insert url for user photo directly in layout using this path `http://localhost:3000/user/photo/%photo_name%`
+`photo_name` is stored in `User` entity in field `imageName`
 
-## Running the app
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+### Task `/task`
+* `POST /` - create new task
+* `GET /?query` - get all tasks of authorized user. You can use query params (year, month, day) to get tasks for selected year/month/day
+* `GET /:id` - get task by `id`
+* `PATCH /:id` - update task data
+* `DELETE /:id` - delete task with `id`
+ 
