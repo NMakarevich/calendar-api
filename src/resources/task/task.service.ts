@@ -9,7 +9,7 @@ import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { QueryEntity } from './entities/query.entity';
-import { NotFoundException } from '../../utils/exceptions';
+import { checkDate, NotFoundException } from '../../utils/functions';
 
 const { env } = process;
 
@@ -23,6 +23,8 @@ export class TaskService {
 
   async create(createTaskDto: CreateTaskDto) {
     const { dateString, ...rest } = createTaskDto;
+    checkDate(dateString);
+
     const dateObj = new Date(dateString);
     const year = dateObj.getFullYear();
     const month = dateObj.getUTCMonth();
@@ -64,8 +66,10 @@ export class TaskService {
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {
-    const task = await this.findOne(id);
+    const { dateString } = updateTaskDto;
+    checkDate(dateString);
 
+    const task = await this.findOne(id);
     const updatedTask = Object.assign(task, updateTaskDto);
     return await this.taskRepository.save(updatedTask);
   }
