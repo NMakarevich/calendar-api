@@ -10,7 +10,7 @@ import * as path from 'path';
 import 'dotenv/config';
 import * as process from 'process';
 import { Repository } from 'typeorm';
-import { NotFoundException } from '../../utils/exceptions';
+import { NotFoundException } from '../../utils/functions';
 import { join } from 'path';
 import { createReadStream, access } from 'fs';
 import * as constants from 'constants';
