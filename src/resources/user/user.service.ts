@@ -114,6 +114,14 @@ export class UserService {
   }
 
   async remove(id: string) {
+    const user = await this.findOne(id);
+
+    if (user.imageName) {
+      await rm(path.join(process.cwd(), 'uploads', user.imageName), {
+        recursive: true,
+      });
+    }
+
     const result = await this.userRepository.delete(id);
     if (result.affected === 0) NotFoundException('User', id);
   }
